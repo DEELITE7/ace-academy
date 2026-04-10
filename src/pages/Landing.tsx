@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, BookOpen, Trophy, Zap, ChevronRight, Star, Users, Target } from "lucide-react";
+import { GraduationCap, BookOpen, Trophy, Zap, ChevronRight, Star, Users, Target, Brain, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 
@@ -9,11 +9,13 @@ const features = [
   { icon: Trophy, title: "Live Leaderboards", desc: "Compete with peers and track your ranking in real-time." },
   { icon: Zap, title: "Smart Flashcards", desc: "Flip-based study cards to reinforce your knowledge." },
   { icon: Target, title: "Performance Analytics", desc: "Track progress, identify weaknesses, and improve scores." },
+  { icon: Brain, title: "Adaptive Quizzes", desc: "Choose how many questions you want and get a randomized experience every time." },
+  { icon: BarChart3, title: "Detailed History", desc: "Review every past attempt with full explanations and scoring breakdowns." },
 ];
 
 const stats = [
-  { value: "100+", label: "Questions" },
-  { value: "6", label: "Quiz Sections" },
+  { value: "500+", label: "Questions" },
+  { value: "Multiple", label: "Courses" },
   { value: "Real-time", label: "Leaderboard" },
   { value: "24/7", label: "Access" },
 ];
@@ -50,13 +52,13 @@ export default function LandingPage() {
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Star className="w-3.5 h-3.5" /> ENT 211 Now Available
+            <Star className="w-3.5 h-3.5" /> New Courses Available
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight mb-6">
             Master Your Courses with <span className="gradient-text">QuizMaster</span>
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            The premium quiz platform built for UNILAG students. Take timed quizzes, study with flashcards, track your performance, and compete on leaderboards.
+            The premium quiz platform built for university students. Take timed quizzes, study with flashcards, track your performance, and compete on leaderboards — across all your courses.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" onClick={() => navigate("/auth")} className="gradient-bg text-primary-foreground px-8 h-12 text-base font-semibold">
@@ -91,7 +93,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-heading font-bold mb-3">Everything You Need to Succeed</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">Designed for serious learners who want to ace their courses.</p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => (
               <motion.div
                 key={i}
@@ -116,7 +118,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="max-w-4xl mx-auto text-center gradient-bg rounded-2xl p-12">
           <h2 className="text-3xl font-heading font-bold text-primary-foreground mb-4">Ready to Start Learning?</h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">Join your classmates on QuizMaster and start preparing for ENT 211 today.</p>
+          <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">Join your classmates on QuizMaster and start preparing for your exams today.</p>
           <Button size="lg" onClick={() => navigate("/auth")} className="bg-primary-foreground text-primary font-semibold h-12 px-8 hover:bg-primary-foreground/90">
             <Users className="w-4 h-4 mr-2" /> Create Free Account
           </Button>
@@ -128,7 +130,7 @@ export default function LandingPage() {
         <div className="flex items-center justify-center gap-2 mb-2">
           <GraduationCap className="w-4 h-4" /> <span className="font-heading font-semibold text-foreground">QuizMaster</span>
         </div>
-        <p>© {new Date().getFullYear()} QuizMaster. Built for UNILAG students.</p>
+        <p>© {new Date().getFullYear()} QuizMaster. Built for university students.</p>
       </footer>
     </div>
   );
