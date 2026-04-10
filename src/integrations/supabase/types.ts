@@ -129,6 +129,57 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          creator_id: string
+          currency: string
+          id: string
+          payout_status: string
+          purchase_id: string | null
+          quiz_set_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          creator_id: string
+          currency?: string
+          id?: string
+          payout_status?: string
+          purchase_id?: string | null
+          quiz_set_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          id?: string
+          payout_status?: string
+          purchase_id?: string | null
+          quiz_set_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_earnings_quiz_set_id_fkey"
+            columns: ["quiz_set_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcards: {
         Row: {
           back_text: string
@@ -211,6 +262,108 @@ export type Database = {
           },
           {
             foreignKeyName: "leaderboard_entries_quiz_set_id_fkey"
+            columns: ["quiz_set_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          provider: string | null
+          provider_reference: string | null
+          purchase_id: string | null
+          quiz_set_id: string
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          provider?: string | null
+          provider_reference?: string | null
+          purchase_id?: string | null
+          quiz_set_id: string
+          status?: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          provider?: string | null
+          provider_reference?: string | null
+          purchase_id?: string | null
+          quiz_set_id?: string
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_quiz_set_id_fkey"
+            columns: ["quiz_set_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          purchase_id: string | null
+          quiz_set_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          purchase_id?: string | null
+          quiz_set_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          purchase_id?: string | null
+          quiz_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_earnings_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_earnings_quiz_set_id_fkey"
             columns: ["quiz_set_id"]
             isOneToOne: false
             referencedRelation: "quiz_sets"
@@ -429,59 +582,148 @@ export type Database = {
           },
         ]
       }
+      quiz_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          creator_share: number
+          currency: string
+          id: string
+          payment_provider: string | null
+          payment_status: string
+          platform_share: number
+          provider_reference: string | null
+          quiz_set_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          creator_share?: number
+          currency?: string
+          id?: string
+          payment_provider?: string | null
+          payment_status?: string
+          platform_share?: number
+          provider_reference?: string | null
+          quiz_set_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          creator_share?: number
+          currency?: string
+          id?: string
+          payment_provider?: string | null
+          payment_status?: string
+          platform_share?: number
+          provider_reference?: string | null
+          quiz_set_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_purchases_quiz_set_id_fkey"
+            columns: ["quiz_set_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_sets: {
         Row: {
           course_id: string
           created_at: string
+          creator_id: string | null
+          currency: string
           description: string | null
           difficulty: string | null
           id: string
           instructions: string | null
+          is_monetized: boolean
           is_visible: boolean | null
           max_attempts: number | null
+          owner_share_percent: number
           passing_score: number | null
+          platform_share_percent: number
+          price_amount: number
+          public_quiz_code: string | null
+          purchase_count: number
           randomize_options: boolean | null
           randomize_questions: boolean | null
           show_explanations: boolean | null
           show_results_immediately: boolean | null
+          status: string
+          tags: string[] | null
+          thumbnail_url: string | null
           time_limit_minutes: number | null
           title: string
+          total_plays: number
           updated_at: string
         }
         Insert: {
           course_id: string
           created_at?: string
+          creator_id?: string | null
+          currency?: string
           description?: string | null
           difficulty?: string | null
           id?: string
           instructions?: string | null
+          is_monetized?: boolean
           is_visible?: boolean | null
           max_attempts?: number | null
+          owner_share_percent?: number
           passing_score?: number | null
+          platform_share_percent?: number
+          price_amount?: number
+          public_quiz_code?: string | null
+          purchase_count?: number
           randomize_options?: boolean | null
           randomize_questions?: boolean | null
           show_explanations?: boolean | null
           show_results_immediately?: boolean | null
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
           time_limit_minutes?: number | null
           title: string
+          total_plays?: number
           updated_at?: string
         }
         Update: {
           course_id?: string
           created_at?: string
+          creator_id?: string | null
+          currency?: string
           description?: string | null
           difficulty?: string | null
           id?: string
           instructions?: string | null
+          is_monetized?: boolean
           is_visible?: boolean | null
           max_attempts?: number | null
+          owner_share_percent?: number
           passing_score?: number | null
+          platform_share_percent?: number
+          price_amount?: number
+          public_quiz_code?: string | null
+          purchase_count?: number
           randomize_options?: boolean | null
           randomize_questions?: boolean | null
           show_explanations?: boolean | null
           show_results_immediately?: boolean | null
+          status?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
           time_limit_minutes?: number | null
           title?: string
+          total_plays?: number
           updated_at?: string
         }
         Relationships: [
@@ -491,6 +733,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_sets_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -520,6 +769,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_quiz_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
