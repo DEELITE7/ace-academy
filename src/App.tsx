@@ -18,6 +18,12 @@ import Flashcards from "./pages/Flashcards";
 import Announcements from "./pages/Announcements";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import QuizMarketplace from "./pages/QuizMarketplace";
+import QuizDetail from "./pages/QuizDetail";
+import QuizByCode from "./pages/QuizByCode";
+import CreatorDashboard from "./pages/creator/CreatorDashboard";
+import QuizBuilder from "./pages/creator/QuizBuilder";
+import CreatorEarnings from "./pages/creator/CreatorEarnings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,8 +36,14 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/quizzes" element={<QuizMarketplace />} />
+            <Route path="/quizzes/:quizId" element={<QuizDetail />} />
+            <Route path="/q/:quizCode" element={<QuizByCode />} />
+
+            {/* Protected user routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
             <Route path="/courses/:courseId" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
@@ -41,8 +53,17 @@ const App = () => (
             <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+            {/* Creator routes */}
+            <Route path="/creator" element={<ProtectedRoute><CreatorDashboard /></ProtectedRoute>} />
+            <Route path="/creator/new" element={<ProtectedRoute><QuizBuilder /></ProtectedRoute>} />
+            <Route path="/creator/edit/:quizId" element={<ProtectedRoute><QuizBuilder /></ProtectedRoute>} />
+            <Route path="/creator/earnings" element={<ProtectedRoute><CreatorEarnings /></ProtectedRoute>} />
+
+            {/* Admin routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
