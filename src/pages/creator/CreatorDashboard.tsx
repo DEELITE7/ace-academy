@@ -55,8 +55,6 @@ export default function CreatorDashboard() {
 
   if (loading) return <AppLayout><PageSkeleton /></AppLayout>;
 
-  const published = quizzes.filter(q => q.status === "published").length;
-  const drafts = quizzes.filter(q => q.status === "draft").length;
   const totalPlays = quizzes.reduce((s, q) => s + (q.total_plays || 0), 0);
 
   return (

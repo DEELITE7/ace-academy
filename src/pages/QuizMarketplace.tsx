@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Filter, GraduationCap, Clock, Users, Star, DollarSign, ChevronRight, Tag, X } from "lucide-react";
+import { Search, Filter, GraduationCap, Clock, Users, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
