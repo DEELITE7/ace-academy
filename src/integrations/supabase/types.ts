@@ -129,6 +129,42 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_bank_details: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_code: string | null
+          bank_name: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          verification_status: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_code?: string | null
+          bank_name: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_code?: string | null
+          bank_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
       creator_earnings: {
         Row: {
           amount: number

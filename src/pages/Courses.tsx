@@ -22,7 +22,7 @@ export default function CoursesPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Courses" description="Browse available courses and start learning" />
+      <PageHeader title="Take Quiz" description="Browse available quizzes and test your knowledge" />
       {loading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1,2,3].map(i => <CardSkeleton key={i} />)}
@@ -30,7 +30,7 @@ export default function CoursesPage() {
       ) : courses.length === 0 ? (
         <div className="text-center py-20">
           <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium">No courses available yet</p>
+          <p className="text-lg font-medium">No quizzes available yet</p>
           <p className="text-muted-foreground">Check back soon for new content!</p>
         </div>
       ) : (
@@ -58,7 +58,7 @@ export default function CoursesPage() {
                   <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5" /> {course.flashcards?.length || 0} Flashcards</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" className="gradient-bg text-primary-foreground flex-1">Start Learning <ChevronRight className="w-3.5 h-3.5 ml-1" /></Button>
+                  <Button size="sm" className="gradient-bg text-primary-foreground flex-1">Take Quiz <ChevronRight className="w-3.5 h-3.5 ml-1" /></Button>
                   <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); navigate(`/leaderboard?course=${course.id}`); }}>
                     <Trophy className="w-3.5 h-3.5" />
                   </Button>

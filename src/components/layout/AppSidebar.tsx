@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 const userLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/quizzes", label: "Browse Quizzes", icon: Globe },
-  { to: "/courses", label: "My Courses", icon: BookOpen },
+  { to: "/courses", label: "Take Quiz", icon: BookOpen },
   { to: "/flashcards", label: "Flashcards", icon: Layers },
   { to: "/history", label: "History", icon: History },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Save, Plus, Trash2, ChevronLeft, GraduationCap, Loader2 } from "lucide-react";
@@ -28,16 +28,22 @@ export default function QuizBuilder() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
-  const [courses, setCourses] = useState<any[]>([]);
+
+  // Course autocomplete
+  const [allCourses, setAllCourses] = useState<{ id: string; title: string; code: string }[]>([]);
+  const [courseName, setCourseName] = useState("");
+  const [suggestions, setSuggestions] = useState<{ id: string; title: string; code: string }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const courseInputRef = useRef<HTMLInputElement>(null);
 
   // Quiz fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [courseId, setCourseId] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
   const [instructions, setInstructions] = useState("");
   const [timeLimit, setTimeLimit] = useState<number | "">("");
   const [passingScore, setPassingScore] = useState(50);
+  const [maxAttempts, setMaxAttempts] = useState<number | "">("");
   const [randomizeQ, setRandomizeQ] = useState(true);
   const [randomizeO, setRandomizeO] = useState(true);
   const [showExplanations, setShowExplanations] = useState(true);
@@ -50,7 +56,7 @@ export default function QuizBuilder() {
   const [questions, setQuestions] = useState<QuestionDraft[]>([]);
 
   useEffect(() => {
-    supabase.from("courses").select("id, title, code").then(({ data }) => setCourses(data || []));
+    supabase.from("courses").select("id, title, code").then(({ data }) => setAllCourses(data || []));
   }, []);
 
   useEffect(() => {
@@ -60,11 +66,14 @@ export default function QuizBuilder() {
       if (!quiz) { navigate("/creator"); return; }
       setTitle(quiz.title);
       setDescription(quiz.description || "");
-      setCourseId(quiz.course_id);
+      // Resolve course name from id
+      const { data: course } = await supabase.from("courses").select("title").eq("id", quiz.course_id).single();
+      setCourseName(course?.title || "");
       setDifficulty(quiz.difficulty || "medium");
       setInstructions(quiz.instructions || "");
       setTimeLimit(quiz.time_limit_minutes || "");
       setPassingScore(quiz.passing_score || 50);
+      setMaxAttempts(quiz.max_attempts || "");
       setRandomizeQ(quiz.randomize_questions ?? true);
       setRandomizeO(quiz.randomize_options ?? true);
       setShowExplanations(quiz.show_explanations ?? true);
@@ -73,7 +82,6 @@ export default function QuizBuilder() {
       setTags((quiz.tags || []).join(", "));
       setThumbnailUrl(quiz.thumbnail_url || "");
 
-      // Load questions
       const { data: qs } = await supabase.from("questions").select("*, question_options(*)").eq("quiz_set_id", quizId).order("order_index");
       if (qs) {
         setQuestions(qs.map(q => ({
@@ -91,6 +99,40 @@ export default function QuizBuilder() {
     };
     load();
   }, [quizId, user]);
+
+  // Autocomplete filtering
+  useEffect(() => {
+    const trimmed = courseName.trim().toLowerCase();
+    if (!trimmed) { setSuggestions([]); return; }
+    const filtered = allCourses.filter(c =>
+      c.title.toLowerCase().includes(trimmed) || c.code.toLowerCase().includes(trimmed)
+    ).slice(0, 5);
+    setSuggestions(filtered);
+  }, [courseName, allCourses]);
+
+  const selectSuggestion = (course: { id: string; title: string; code: string }) => {
+    setCourseName(course.title);
+    setShowSuggestions(false);
+  };
+
+  /** Resolve or create a course by name, return its id */
+  const resolveOrCreateCourse = async (name: string): Promise<string> => {
+    const normalized = name.trim();
+    // Case-insensitive match
+    const existing = allCourses.find(c => c.title.toLowerCase() === normalized.toLowerCase());
+    if (existing) return existing.id;
+
+    // Create new course
+    const code = normalized.toUpperCase().replace(/\s+/g, " ").substring(0, 20);
+    const { data, error } = await supabase.from("courses").insert({
+      title: normalized,
+      code,
+    }).select("id").single();
+    if (error) throw new Error("Failed to create course: " + error.message);
+    // Add to local cache
+    setAllCourses(prev => [...prev, { id: data.id, title: normalized, code }]);
+    return data.id;
+  };
 
   const addQuestion = () => {
     setQuestions(prev => [...prev, {
@@ -126,36 +168,37 @@ export default function QuizBuilder() {
   const handleSave = async (publish = false) => {
     if (!user) return;
     if (!title.trim()) { toast({ title: "Title required", variant: "destructive" }); return; }
-    if (!courseId) { toast({ title: "Select a course", variant: "destructive" }); return; }
+    if (!courseName.trim()) { toast({ title: "Course name is required", variant: "destructive" }); return; }
 
     setSaving(true);
-    const tagArr = tags.split(",").map(t => t.trim()).filter(Boolean);
-    const quizData = {
-      title: title.trim(),
-      description: description.trim() || null,
-      course_id: courseId,
-      creator_id: user.id,
-      difficulty,
-      instructions: instructions.trim() || null,
-      time_limit_minutes: timeLimit || null,
-      passing_score: passingScore,
-      randomize_questions: randomizeQ,
-      randomize_options: randomizeO,
-      show_explanations: showExplanations,
-      is_monetized: isMonetized,
-      price_amount: isMonetized ? (price || 0) : 0,
-      tags: tagArr,
-      thumbnail_url: thumbnailUrl.trim() || null,
-      status: publish ? "published" : "draft",
-      is_visible: publish,
-    };
-
     try {
+      const courseId = await resolveOrCreateCourse(courseName);
+      const tagArr = tags.split(",").map(t => t.trim()).filter(Boolean);
+      const quizData = {
+        title: title.trim(),
+        description: description.trim() || null,
+        course_id: courseId,
+        creator_id: user.id,
+        difficulty,
+        instructions: instructions.trim() || null,
+        time_limit_minutes: timeLimit || null,
+        passing_score: passingScore,
+        max_attempts: maxAttempts || null,
+        randomize_questions: randomizeQ,
+        randomize_options: randomizeO,
+        show_explanations: showExplanations,
+        is_monetized: isMonetized,
+        price_amount: isMonetized ? (price || 0) : 0,
+        tags: tagArr,
+        thumbnail_url: thumbnailUrl.trim() || null,
+        status: publish ? "published" : "draft",
+        is_visible: publish,
+      };
+
       let savedQuizId = quizId;
 
       if (isEdit) {
         await supabase.from("quiz_sets").update(quizData).eq("id", quizId);
-        // Delete old questions
         await supabase.from("questions").delete().eq("quiz_set_id", quizId);
       } else {
         const { data, error } = await supabase.from("quiz_sets").insert(quizData).select().single();
@@ -163,7 +206,6 @@ export default function QuizBuilder() {
         savedQuizId = data.id;
       }
 
-      // Insert questions
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
         if (!q.question_text.trim()) continue;
@@ -176,7 +218,6 @@ export default function QuizBuilder() {
         }).select().single();
         if (qErr) throw qErr;
 
-        // Insert options
         const opts = q.options.filter(o => o.option_text.trim()).map(o => ({
           question_id: qData.id,
           option_label: o.option_label,
@@ -211,14 +252,39 @@ export default function QuizBuilder() {
         <div className="glass-card rounded-xl p-6 space-y-4">
           <h2 className="font-heading font-semibold text-lg">Quiz Details</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2"><Label>Title *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Quiz title" /></div>
-            <div className="sm:col-span-2"><Label>Description</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your quiz" rows={2} /></div>
-            <div>
-              <Label>Course *</Label>
-              <select className="w-full h-10 px-3 border border-input bg-background rounded-md text-sm" value={courseId} onChange={e => setCourseId(e.target.value)}>
-                <option value="">Select course</option>
-                {courses.map(c => <option key={c.id} value={c.id}>{c.code} – {c.title}</option>)}
-              </select>
+            <div className="sm:col-span-2">
+              <Label>Title *</Label>
+              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. COS 201 Mid-Semester Revision, Calculus Quiz" />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Description</Label>
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your quiz" rows={2} />
+            </div>
+            <div className="relative">
+              <Label>Course Name *</Label>
+              <Input
+                ref={courseInputRef}
+                value={courseName}
+                onChange={e => { setCourseName(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="e.g. COS 201, Entrepreneurship"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
+                  {suggestions.map(s => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                      onMouseDown={() => selectSuggestion(s)}
+                    >
+                      <span className="font-medium">{s.title}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">{s.code}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <Label>Difficulty</Label>
@@ -230,6 +296,11 @@ export default function QuizBuilder() {
             </div>
             <div><Label>Time Limit (minutes)</Label><Input type="number" value={timeLimit} onChange={e => setTimeLimit(parseInt(e.target.value) || "")} placeholder="No limit" /></div>
             <div><Label>Passing Score (%)</Label><Input type="number" min={0} max={100} value={passingScore} onChange={e => setPassingScore(parseInt(e.target.value) || 50)} /></div>
+            <div>
+              <Label>Max Attempts</Label>
+              <Input type="number" min={1} value={maxAttempts} onChange={e => setMaxAttempts(parseInt(e.target.value) || "")} placeholder="Unlimited" />
+              <p className="text-xs text-muted-foreground mt-1">How many times can a user take this quiz?</p>
+            </div>
             <div className="sm:col-span-2"><Label>Tags (comma separated)</Label><Input value={tags} onChange={e => setTags(e.target.value)} placeholder="math, algebra, exam prep" /></div>
             <div className="sm:col-span-2"><Label>Thumbnail URL</Label><Input value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} placeholder="https://..." /></div>
             <div className="sm:col-span-2"><Label>Instructions</Label><Textarea value={instructions} onChange={e => setInstructions(e.target.value)} rows={2} placeholder="Instructions for quiz takers" /></div>
